@@ -1,73 +1,83 @@
-﻿using System;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 
 namespace TestForAICodeReview
 {
     class Program
     {
-        //数据库连接
-        SQLiteConnection m_dbConnection;
+        private SQLiteConnection dbConnection;
 
         static void Main(string[] args)
         {
-            Program p = new Program();
+            try
+            {
+                Program p = new Program();                
+                p.Run();
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred: " + ex.Message);
+                Console.ReadLine();
+            }
         }
 
         public Program()
         {
-            createNewDatabase();
-            connectToDatabase();
-            createTable();
-            fillTable();
-            printHighscores();
+            dbConnection = CreateDatabaseConnection();
         }
 
-        //创建一个空的数据库
-        void createNewDatabase()
+        private SQLiteConnection CreateDatabaseConnection()
         {
-            SQLiteConnection.CreateFile("MyDatabase.db");//可以不要此句
+            string connectionString = "Data Source=MyDatabase.db;Version=3;";
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
+            connection.Open();
+            return connection;
         }
 
-        //创建一个连接到指定数据库
-        void connectToDatabase()
+        private void Run()
         {
-            m_dbConnection = new SQLiteConnection("Data Source=MyDatabase.db;Version=3;");//没有数据库则自动创建
-            m_dbConnection.Open();
+            CreateTable();
+            FillTable(new List<(string name, int score)>
+                { ("Me", 3000), ("Myself", 6000), ("And I", 9001) });
+            PrintHighscores();
         }
 
-        //在指定数据库中创建一个table
-        void createTable()
+        private void CreateTable()
         {
-            string sql = "create table  if not exists highscores (name varchar(20), score int)";
-            SQLiteCommand command = new SQLiteCommand(sql, m_dbConnection);
-            command.ExecuteNonQuery();
+            string sql = "create table if not exists highscores (name varchar(255), score int)";
+            using (SQLiteCommand command = new SQLiteCommand(sql, dbConnection))
+                command.ExecuteNonQuery();
         }
 
-        //插入一些数据
-        void fillTable()
+        private void FillTable(List<(string name, int score)> data)
         {
-            string sql = "insert into highscores (name, score) values ('Me', 3000)";
-            SQLiteCommand command = new SQLiteCommand(sql, m_dbConnection);
-            command.ExecuteNonQuery();
-
-            sql = "insert into highscores (name, score) values ('Myself', 6000)";
-            command = new SQLiteCommand(sql, m_dbConnection);
-            command.ExecuteNonQuery();
-
-            sql = "insert into highscores (name, score) values ('And I', 9001)";
-            command = new SQLiteCommand(sql, m_dbConnection);
-            command.ExecuteNonQuery();
+            foreach ((var name, var score) in data)
+            {
+                string sql = "insert into highscores (name, score) values (@Name, @Score)";
+                using (SQLiteCommand command = new SQLiteCommand(sql, dbConnection))
+                {
+                    command.Parameters.AddWithValue("@Name", name);
+                    command.Parameters.AddWithValue("@Score", score);
+                    command.ExecuteNonQuery();
+                }
+            }
         }
 
-        //使用sql查询语句，并显示结果
-        void printHighscores()
+        private void PrintHighscores()
         {
             string sql = "select * from highscores order by score desc";
-            SQLiteCommand command = new SQLiteCommand(sql, m_dbConnection);
-            SQLiteDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-                Console.WriteLine("Name: " + reader["name"] + "\tScore: " + reader["score"]);
-            Console.ReadLine();
+            using (SQLiteCommand command = new SQLiteCommand(sql, dbConnection))
+            using (SQLiteDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                    Console.WriteLine("Name: " + reader["name"] + "\tScore: " + reader["score"]);
+            }
+        }
+
+        ~Program()
+        {
+            if (dbConnection != null)
+                dbConnection.Close();
         }
     }
 }
