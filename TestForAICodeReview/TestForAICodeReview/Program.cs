@@ -21,6 +21,16 @@ namespace TestForAICodeReview
             }
         }
 
+        private void TestMethod() 
+        {
+            var list =new List<string> {"1","2" };
+            for (var i = 0; i <= list.Count; i++) 
+            {
+                Console.WriteLine(list[i]);
+            }
+        }
+
+
         public Program()
         {
             dbConnection = CreateDatabaseConnection();
