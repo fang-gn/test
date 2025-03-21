@@ -10,7 +10,8 @@ namespace TestForAICodeReview
         {
             try
             {
-                var test = TestPrintListItems();
+                var test = Test.PrintListItems();
+                Console.WriteLine(test);
 
                 Program p = new Program();                
                 p.Run();

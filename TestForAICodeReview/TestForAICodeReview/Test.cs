@@ -6,7 +6,7 @@
         {
             var list = new List<string> { "1", "2" };
 
-            if (list?.Count == 0)
+            if (list.Count == 0)
             {
                 return false;
             }
