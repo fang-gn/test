@@ -10,6 +10,8 @@ namespace TestForAICodeReview
         {
             try
             {
+                var test = TestPrintListItems();
+
                 Program p = new Program();                
                 p.Run();
                 
@@ -20,16 +22,6 @@ namespace TestForAICodeReview
                 Console.ReadLine();
             }
         }
-
-        public void PrintListItems()
-        {
-            var list = new List<string> { "1", "2" };
-            for (var i = 0; i < list.Count; i++)
-            {
-                Console.WriteLine(list[i]);
-            }
-        }
-
 
         public Program()
         {
